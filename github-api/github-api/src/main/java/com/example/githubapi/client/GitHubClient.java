@@ -1,7 +1,9 @@
 package com.example.githubapi.client;
 
+import com.example.githubapi.exception.GitHubUserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -13,16 +15,21 @@ public class GitHubClient {
 
     private final RestClient restClient;
 
-    // 1. repozytoria usera
     public List<Map<String, Object>> getRepositories(String username) {
-        return restClient.get()
-                .uri("/users/{username}/repos", username)
-                .retrieve()
-                .body(List.class);
+
+        try {
+            return restClient.get()
+                    .uri("/users/{username}/repos", username)
+                    .retrieve()
+                    .body(List.class);
+
+        } catch (HttpClientErrorException.NotFound ex) {
+            throw new GitHubUserNotFoundException("User not found");
+        }
     }
 
-    // 2. branche repo
     public List<Map<String, Object>> getBranches(String owner, String repo) {
+
         return restClient.get()
                 .uri("/repos/{owner}/{repo}/branches", owner, repo)
                 .retrieve()

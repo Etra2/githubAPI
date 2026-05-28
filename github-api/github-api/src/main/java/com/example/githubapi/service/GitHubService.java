@@ -24,13 +24,20 @@ public class GitHubService {
 
         for (Map<String, Object> repo : repos) {
 
+            // 🔥 FILTR FORKÓW (WYMAGANIE REKRUTACYJNE)
             Boolean fork = (Boolean) repo.get("fork");
-            if (fork != null && fork) continue;
+            if (Boolean.TRUE.equals(fork)) {
+                continue;
+            }
 
             String repoName = (String) repo.get("name");
 
             Map<String, Object> owner = (Map<String, Object>) repo.get("owner");
-            String ownerLogin = (String) owner.get("login");
+            String ownerLogin = owner != null ? (String) owner.get("login") : null;
+
+            if (ownerLogin == null || repoName == null) {
+                continue; // zabezpieczenie (edge case)
+            }
 
             List<Map<String, Object>> branchesRaw =
                     gitHubClient.getBranches(ownerLogin, repoName);
@@ -44,9 +51,11 @@ public class GitHubService {
                 Map<String, Object> commit =
                         (Map<String, Object>) branch.get("commit");
 
-                String sha = (String) commit.get("sha");
+                String sha = commit != null ? (String) commit.get("sha") : null;
 
-                branches.add(new BranchDto(branchName, sha));
+                if (branchName != null && sha != null) {
+                    branches.add(new BranchDto(branchName, sha));
+                }
             }
 
             result.add(new RepositoryDto(repoName, ownerLogin, branches));
