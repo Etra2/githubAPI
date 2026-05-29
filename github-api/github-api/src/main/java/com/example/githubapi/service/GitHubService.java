@@ -24,7 +24,6 @@ public class GitHubService {
 
         for (Map<String, Object> repo : repos) {
 
-            // 🔥 FILTR FORKÓW (WYMAGANIE REKRUTACYJNE)
             Boolean fork = (Boolean) repo.get("fork");
             if (Boolean.TRUE.equals(fork)) {
                 continue;
@@ -33,10 +32,13 @@ public class GitHubService {
             String repoName = (String) repo.get("name");
 
             Map<String, Object> owner = (Map<String, Object>) repo.get("owner");
-            String ownerLogin = owner != null ? (String) owner.get("login") : null;
+            if (owner == null || repoName == null) {
+                continue;
+            }
 
-            if (ownerLogin == null || repoName == null) {
-                continue; // zabezpieczenie (edge case)
+            String ownerLogin = (String) owner.get("login");
+            if (ownerLogin == null) {
+                continue;
             }
 
             List<Map<String, Object>> branchesRaw =
